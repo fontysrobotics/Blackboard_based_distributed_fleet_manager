@@ -1,0 +1,3 @@
+when creating the package add blackboard as dependencie
+create setup.py
+from blackboard.filename import classs

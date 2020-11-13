@@ -1,0 +1,2 @@
+string bbAdress
+string buAdress
