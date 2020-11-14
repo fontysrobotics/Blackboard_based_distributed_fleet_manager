@@ -10,8 +10,16 @@ project(bbinstance)
 find_package(catkin REQUIRED COMPONENTS
   blackboard
   rospy
+  
+
 )
 
+find_package(python_qt_binding REQUIRED COMPONENTS
+  QtWidgets
+  QtCore
+  QtGui
+
+)
 ## System dependencies are found with CMake's conventions
 # find_package(Boost REQUIRED COMPONENTS system)
 

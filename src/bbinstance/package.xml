@@ -49,12 +49,20 @@
   <!-- Use doc_depend for packages you need only for building documentation: -->
   <!--   <doc_depend>doxygen</doc_depend> -->
   <buildtool_depend>catkin</buildtool_depend>
+  <buildtool_depend>python_qt_binding</buildtool_depend>
+  <buildtool_depend>QtWidgets</buildtool_depend>
+  <buildtool_depend>QtCore</buildtool_depend>
+  <buildtool_depend>QtGui</buildtool_depend>
   <build_depend>blackboard</build_depend>
   <build_depend>rospy</build_depend>
   <build_export_depend>blackboard</build_export_depend>
   <build_export_depend>rospy</build_export_depend>
   <exec_depend>blackboard</exec_depend>
   <exec_depend>rospy</exec_depend>
+  <exec_depend>QtWidgets</exec_depend>
+  <exec_depend>python_qt_binding</exec_depend>
+  <exec_depend>QtCore</exec_depend>
+  <exec_depend>QtGui</exec_depend>
 
 
   <!-- The export tag contains other, unspecified, tags -->

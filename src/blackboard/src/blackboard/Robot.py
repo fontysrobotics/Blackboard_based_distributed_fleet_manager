@@ -48,7 +48,7 @@ class Robot:
             self.lock.acquire()
             self.bbAdress = data.bbAdress
             self.buAdress = data.buAdress
-            print('reached')
+            # print('reached')
             self.bbState = True
             self.lock.release()
 
@@ -96,7 +96,7 @@ class Robot:
         if  self.lock.locked() is False:
             self.lock.acquire()
             self.bbState = rosnode_ping(self.bbAdress,1)
-            print (self.bbState,self.bbAdress,self.buAdress,self.talker.nodeName)
+            # print (self.bbState,self.bbAdress,self.buAdress,self.talker.nodeName)
             self.lock.release()
                     
 
@@ -105,10 +105,10 @@ class Robot:
     def bbBackupActivate(self,event):
         if self.lock.locked() is False:
             self.lock.acquire()
-            print('bbactivation reach')
+            # print('bbactivation reach')
             if self.bbState is False:
                 if self.nodeName == self.buAdress:
-                    print('condition activbation callback')
+                    # print('condition activbation callback')
                     self.pingTimer.shutdown()
                     self.bbState = True
                     self.bbAdress = self.talker.nodeName
