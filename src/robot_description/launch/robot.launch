@@ -1,0 +1,13 @@
+<?xml version="1.0" ?>
+<launch>
+  
+  <include file="$(find gazebo_ros)/launch/empty_world.launch" />
+    <param name="robot_description" command="$(find xacro)/xacro '$(find robot_description)/urdf/robot_description_urdf.urdf'" />
+
+    <node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher" />
+    <node name="joint_state_publisher" pkg="joint_state_publisher" type="joint_state_publisher">
+
+    </node>
+    <node name="urdf_spawner" pkg="gazebo_ros" type="spawn_model" respawn="false" output="screen" args="-urdf -x 0 -y 0 -z 0  -model robotcleaner -param robot_description" />
+
+</launch>
