@@ -1,0 +1,26 @@
+<launch>
+
+<node pkg="amcl" type="amcl" name="amcl2" output="screen">
+		
+    <rosparam file="$(find robot2)/cfg/amcl_params.yaml" command="load" />
+		
+    <!-- We have a holonomic robot! Overwrite yaml config here! -->
+		<param name="odom_model_type" value="omni" />
+		<param name="initial_pose_x" value="3.0" />
+		<param name="initial_pose_y" value="0" />
+		<param name="initial_pose_a" value="0" />
+	
+    <param name="odom_frame_id"             value="robot2_odom"/>
+    <param name="base_frame_id"             value="robot2_base_footprint"/>
+    <param name="global_frame_id"           value="map"/>
+    <param name="resample_interval"         value="1"/>
+    <!-- Increase tolerance because the computer can get quite busy -->
+    
+    <remap from="scan"                      to="robot2_scan"/>
+    <remap from="initialpose"               to="/robot2/initialpose"/>
+    <remap from="amcl_pose"                 to="/robot2/amcl_pose"/>
+    <remap from="particlecloud"             to="/robot2/particlecloud"/>
+
+  </node>
+
+</launch>

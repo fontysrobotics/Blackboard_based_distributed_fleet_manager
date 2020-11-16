@@ -1,0 +1,18 @@
+<?xml version="1.0" ?>
+<launch>
+ 
+
+ 
+<param name="robot_description" command="$(find xacro)/xacro '$(find robot2)/urdf/robot_description_urdf.urdf'" />
+
+    <node name="robot_state_publisher2" pkg="robot_state_publisher" type="robot_state_publisher" />
+    <node name="joint_state_publisher2" pkg="joint_state_publisher" type="joint_state_publisher">
+
+    </node>
+    <node name="urdf_spawner2" pkg="gazebo_ros" type="spawn_model" respawn="false" output="screen" args="-urdf -x 1 -y 0 -z 0  -model robot2 -param robot_description" />
+
+
+
+
+
+</launch>
