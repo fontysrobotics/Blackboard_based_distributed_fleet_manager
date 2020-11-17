@@ -20,3 +20,14 @@ import cv2
 
 
 
+class Cbot:
+    def __init__(self,x,y,radius):
+        self.x = x
+        self.y = y
+        self.radius = radius
+        self.color = (0,0,255)
+        return cv2.circle(img,(self.x,self.y),self.radius,self.color,(-1))
+
+
+if __name__ == "__main__":
+    robot = Cbot(250,250,50)

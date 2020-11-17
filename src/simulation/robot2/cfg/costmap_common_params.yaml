@@ -3,7 +3,7 @@
 #---(in meters)---
 robot_radius: 0.17
 
-footprint: [[-0.36,-0.2],[0.4,-0.2],[0.4,0.2],[-0.36,0.2]]
+footprint: [[-0.1,-0.1],[0.1,-0.1],[0.1,0.1],[-0.1,0.1]]
 
 transform_tolerance: 0.2
 map_type: costmap

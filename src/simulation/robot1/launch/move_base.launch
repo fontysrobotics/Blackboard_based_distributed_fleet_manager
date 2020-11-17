@@ -12,11 +12,11 @@
 
 
    <node pkg="move_base" type="move_base" respawn="false" name="move_base2" output="screen">
-    <rosparam file="$(find robot_description)/cfg/costmap_common_params.yaml" command="load" ns="global_costmap" />
-		<rosparam file="$(find robot_description)/cfg/costmap_common_params.yaml" command="load" ns="local_costmap" />
-		<rosparam file="$(find robot_description)/cfg/local_costmap_params.yaml" command="load" />
-		<rosparam file="$(find robot_description)/cfg/global_costmap_params.yaml" command="load" />
-		<rosparam file="$(find robot_description)/cfg/teb_local_planner_params.yaml" command="load" />
+    <rosparam file="$(find robot1)/cfg/costmap_common_params.yaml" command="load" ns="global_costmap" />
+		<rosparam file="$(find robot1)/cfg/costmap_common_params.yaml" command="load" ns="local_costmap" />
+		<rosparam file="$(find robot1)/cfg/local_costmap_params.yaml" command="load" />
+		<rosparam file="$(find robot1)/cfg/global_costmap_params.yaml" command="load" />
+		<rosparam file="$(find robot1)/cfg/teb_local_planner_params.yaml" command="load" />
 		<param name="base_global_planner" value="navfn/NavfnROS" />
 		<param name="planner_frequency" value="1.0" />
 		<param name="planner_patience" value="5.0" />

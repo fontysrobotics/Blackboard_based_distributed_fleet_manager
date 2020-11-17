@@ -11,6 +11,7 @@ from rosnode import rosnode_ping
 from blackboard.msg import bbBackup
 from Blackboard import Blackboard
 from threading import Lock
+from blackboard.Controller import Controller
 
 class RobotState(Enum):
     busy = 0
@@ -41,6 +42,7 @@ class Robot:
         self.pingTimer = rospy.Timer(rospy.Duration(1),self.pingBlackboard)
         self.bbBackupTimer = rospy.Timer(rospy.Duration(3),self.bbBackupActivate)
         self.lock = Lock()
+        self.controller = Controller(self.talker)
   
 
     def bbBackup(self,data):
@@ -61,8 +63,8 @@ class Robot:
 
     def addTask(self,data):  # add the recived task to the current task field
         if data.robotId is self.robotId:
-            print('I have been assigned task nr:')
-            print(data.taskId)
+            print(self.nodeName,'I have been assigned task nr:', data.taskId)
+
             
             
     def getTaskCost(self,data):

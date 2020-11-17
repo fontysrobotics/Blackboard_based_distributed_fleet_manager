@@ -12,17 +12,29 @@
  
 <param name="robot_description" command="$(find xacro)/xacro '$(find robot1)/urdf/robot_description_urdf.urdf'" />
 
-    <node name="robot_state_publisher1" pkg="robot_state_publisher" type="robot_state_publisher" />
+    
+
+
+    <node name="urdf_spawner1" pkg="gazebo_ros" type="spawn_model" respawn="false" output="screen" args="-urdf -x -1 -y 0 -z 0  -model robot1 -param robot_description " >
+    
+</node>
+
+
+<node name="robot_state_publisher1" pkg="robot_state_publisher" type="robot_state_publisher" >
+
+</node>
     <node name="joint_state_publisher1" pkg="joint_state_publisher" type="joint_state_publisher">
 
     </node>
-    <node name="urdf_spawner1" pkg="gazebo_ros" type="spawn_model" respawn="false" output="screen" args="-urdf -x -1 -y 0 -z 0  -model robot1 -param robot_description" />
-
 
 
   <!-- Run the map server -->
   <node name="map_server" pkg="map_server" type="map_server" args="$(find robot1)/maps/aa.yaml" >
     <param name="frame_id" value="map" />
   </node>
+
+
+    <include file="$(find robot1)/launch/amcl.launch" />
+    <include file="$(find robot1)/launch/move_base.launch" />
 
 </launch>
