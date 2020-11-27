@@ -12,7 +12,7 @@ from blackboard.Task import Task,TaskType,TaskStep,TaskState
 from std_msgs.msg import String
 from std_msgs.msg import Float32
 from blackboard.msg import bbBackup
-from geometry_msgs.msg import Pose
+from geometry_msgs.msg import Pose , PointStamped
 
 from threading import Lock
 
@@ -34,6 +34,7 @@ class Ui_MainWindow(object):
         self.lock = Lock()
         self.talker = Talker('gui')
         rospy.Subscriber('bbBackup',bbBackup,self.backupFunction)   
+        rospy.Subscriber('clicked_point',PointStamped,self.clickedPintRviz)
 ###############################################################################################
 
 
@@ -60,15 +61,19 @@ class Ui_MainWindow(object):
         self.cx = QtWidgets.QDoubleSpinBox(self.gBc)
         self.cx.setGeometry(QtCore.QRect(30, 30, 69, 26))
         self.cx.setObjectName("cx")
+        self.cx.setRange(-100.0,100.0)
         self.cy = QtWidgets.QDoubleSpinBox(self.gBc)
         self.cy.setGeometry(QtCore.QRect(30, 60, 69, 26))
         self.cy.setObjectName("cy")
+        self.cy.setRange(-100.0,100.0)
         self.cz = QtWidgets.QDoubleSpinBox(self.gBc)
         self.cz.setGeometry(QtCore.QRect(30, 90, 69, 26))
         self.cz.setObjectName("cz")
+        self.cz.setRange(-100.0,100.0)
         self.cw = QtWidgets.QDoubleSpinBox(self.gBc)
         self.cw.setGeometry(QtCore.QRect(30, 120, 69, 26))
         self.cw.setObjectName("cw")
+        self.cw.setRange(-100.0,100.0)
         self.label_39 = QtWidgets.QLabel(self.gBc)
         self.label_39.setGeometry(QtCore.QRect(10, 120, 21, 21))
         self.label_39.setObjectName("label_39")
@@ -88,15 +93,19 @@ class Ui_MainWindow(object):
         self.bx = QtWidgets.QDoubleSpinBox(self.gBb)
         self.bx.setGeometry(QtCore.QRect(30, 30, 69, 26))
         self.bx.setObjectName("bx")
+        self.bx.setRange(-100.0,100.0)
         self.by = QtWidgets.QDoubleSpinBox(self.gBb)
         self.by.setGeometry(QtCore.QRect(30, 60, 69, 26))
         self.by.setObjectName("by")
+        self.by.setRange(-100.0,100.0)
         self.bz = QtWidgets.QDoubleSpinBox(self.gBb)
         self.bz.setGeometry(QtCore.QRect(30, 90, 69, 26))
         self.bz.setObjectName("bz")
+        self.bz.setRange(-100.0,100.0)
         self.bw = QtWidgets.QDoubleSpinBox(self.gBb)
         self.bw.setGeometry(QtCore.QRect(30, 120, 69, 26))
         self.bw.setObjectName("bw")
+        self.bw.setRange(-100.0,100.0)
         self.label_43 = QtWidgets.QLabel(self.gBb)
         self.label_43.setGeometry(QtCore.QRect(10, 120, 21, 21))
         self.label_43.setObjectName("label_43")
@@ -133,15 +142,19 @@ class Ui_MainWindow(object):
         self.ax = QtWidgets.QDoubleSpinBox(self.gBa)
         self.ax.setGeometry(QtCore.QRect(30, 30, 69, 26))
         self.ax.setObjectName("ax")
+        self.ax.setRange(-100.0,100.0)
         self.ay = QtWidgets.QDoubleSpinBox(self.gBa)
         self.ay.setGeometry(QtCore.QRect(30, 60, 69, 26))
         self.ay.setObjectName("ay")
+        self.ay.setRange(-100.0,100.0)
         self.az = QtWidgets.QDoubleSpinBox(self.gBa)
         self.az.setGeometry(QtCore.QRect(30, 90, 69, 26))
         self.az.setObjectName("az")
+        self.az.setRange(-100.0,100.0)
         self.aw = QtWidgets.QDoubleSpinBox(self.gBa)
         self.aw.setGeometry(QtCore.QRect(30, 120, 69, 26))
         self.aw.setObjectName("aw")
+        self.aw.setRange(-100.0,100.0)
         self.label_28 = QtWidgets.QLabel(self.gBa)
         self.label_28.setGeometry(QtCore.QRect(10, 120, 21, 21))
         self.label_28.setObjectName("label_28")
@@ -218,6 +231,8 @@ class Ui_MainWindow(object):
 
         self.retranslateUi(MainWindow)
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
+        self.currentpint = 1
+
 
     def retranslateUi(self, MainWindow):
         _translate = QtCore.QCoreApplication.translate
@@ -267,6 +282,26 @@ class Ui_MainWindow(object):
         self.radioButton_4.clicked.connect(self.abcActivate)
         self.btnAddTask.clicked.connect(self.addTaskFunction)
 
+
+
+    def clickedPintRviz(self,data):
+        if self.currentpint == 1:
+            self.ax.setValue(data.point.x)
+            self.ay.setValue(data.point.y)
+            self.currentpint = 2
+            return
+        if self.currentpint == 2:
+            self.bx.setValue(data.point.x)
+            self.by.setValue(data.point.y)
+            self.currentpint = 3
+            return
+        if self.currentpint == 3:
+            self.cx.setValue(data.point.x)
+            self.cy.setValue(data.point.y)
+            self.currentpint = 1
+            return
+
+
     def resetInterface(self):
         self.sbtaskPriority.setValue(0)
         self.sbtaskPayload.setValue(0)
@@ -284,22 +319,26 @@ class Ui_MainWindow(object):
         self.cy.setValue(0)
         self.cz.setValue(0)
         self.cw.setValue(0)
+        self.currentpint = 1
 
 
     def aActivate(self,event):
         self.gBa.setEnabled(True)
         self.gBb.setEnabled(False)
         self.gBc.setEnabled(False)
+        self.currentpint = 1
 
     def abActivate(self,event):
         self.gBa.setEnabled(True)
         self.gBb.setEnabled(True)
         self.gBc.setEnabled(False)
+        self.currentpint = 1
   
     def abcActivate(self,event):
         self.gBa.setEnabled(True)
         self.gBb.setEnabled(True)
         self.gBc.setEnabled(True)
+        self.currentpint = 1
 
 
     def backupFunction(self,data):

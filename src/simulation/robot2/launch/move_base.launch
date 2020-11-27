@@ -11,7 +11,7 @@
   <arg name="laser_topic" default="robot2_scan" />
 
 
-   <node pkg="move_base" type="move_base" respawn="false" name="move_base22" output="screen">
+   <node pkg="move_base" type="move_base" respawn="false" name="move_base2" output="screen" >
     <rosparam file="$(find robot2)/cfg/costmap_common_params.yaml" command="load" ns="global_costmap" />
 		<rosparam file="$(find robot2)/cfg/costmap_common_params.yaml" command="load" ns="local_costmap" />
 		<rosparam file="$(find robot2)/cfg/local_costmap_params.yaml" command="load" />

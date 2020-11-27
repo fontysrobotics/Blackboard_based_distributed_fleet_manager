@@ -1,132 +1,198 @@
-from Task import Task, TaskState, TaskType, TaskStep, StepType
-from geometry_msgs.msg import Pose
-from enum import Enum
-import rospy
-from blackboard.msg import TaskMsg
-import random
-from RosCommunication import Talker
-from blackboard.msg import TaskCost
-from std_msgs.msg import String
-from rosnode import rosnode_ping
-from blackboard.msg import bbBackup
-from Blackboard import Blackboard
-from threading import Lock
-from blackboard.Controller import Controller
+#---------------------------------------------------------------- 
+# Blackboard distributed fleet manager - Fontys lectoraat
+# Sep 2020 - Feb 2021 internship Eindhoven BIC
+# Hussam Ayoub, 356203@student.fontys.nl
 
+#----------------------------Description------------------------- 
+# 
+# The Robot class is intended to run as an independent ros node on
+# different robots from different vendors. it processes new tasks 
+# calculate the cost of executing a certain task based on the robot
+# charactaristis and it is responsable for executing a task through
+# the "Controller" object which is initilized in the robot class.
+#----------------------------------------------------------------
+
+
+
+import random                                                  # for testing purboses
+from enum import Enum         
+
+import rospy   
+
+from geometry_msgs.msg import Pose                             # ros pose msg
+from rosnode import rosnode_ping                               # ROS node ping                  
+from blackboard.msg import TaskMsg                             # ROS custom msgs
+from blackboard.msg import TaskCost                            #
+from blackboard.msg import bbBackup                            #
+from std_msgs.msg import String                                #
+from blackboard.msg import TaskStateMsg                        #
+
+from RosCommunication import Talker                            # blackboard package classes
+from Blackboard import Blackboard                              #                        
+from blackboard.Controller import Controller                   #
+from Task import Task, TaskState, TaskType, TaskStep, StepType #
+
+from threading import Lock,Thread                              # Python threading
+
+
+# Robot state enums
 class RobotState(Enum):
     busy = 0
     defect = 1
     idle = 2
 
+# Start Robot class
 class Robot:
     def __init__(self, bbAdress, backupAdress, robotId, robotType, repeatability, accuracy, payload, mxVelLinear, mxVelAngular, battery,nodeName,talker):
-        self.talker = talker
-        self.bb = Blackboard(0,self.talker)
-        self.bbAdress = bbAdress
-        self.buAdress = backupAdress
-        self.robotId = robotId
-        self.robotType = robotType
-        self.repeatability = repeatability
-        self.accuracy = accuracy
-        self.payload = payload
-        self.mxVelAngular = mxVelAngular
-        self.mxVelLinear = mxVelLinear
-        self.battery = battery
-        self.state = 0
-        self.nodeName = nodeName
-        self.bbState = True
+        self.talker = talker                    # ROS publishers ande node init
+        self.bb = Blackboard(0,self.talker)     # inactive instance of blackboared
+        self.bbAdress = bbAdress                # blackboard adress
+        self.buAdress = backupAdress            # backup adress
+        self.robotId = robotId                  # robot Id
+        self.robotType = robotType              # robot type , "agv , heterogenous"
         
-        rospy.Subscriber('taskBC',TaskMsg,self.getTaskCost)
-        rospy.Subscriber('taskAssign',TaskMsg,self.addTask)
-        self.bbBackupSub = rospy.Subscriber('bbBackup',bbBackup,self.bbBackup)
-        self.pingTimer = rospy.Timer(rospy.Duration(1),self.pingBlackboard)
-        self.bbBackupTimer = rospy.Timer(rospy.Duration(3),self.bbBackupActivate)
-        self.lock = Lock()
-        self.controller = Controller(self.talker)
+        self.repeatability = repeatability      # robot charactaristics
+        self.accuracy = accuracy                #
+        self.payload = payload                  #
+        self.mxVelAngular = mxVelAngular        #
+        self.mxVelLinear = mxVelLinear          #
+
+        self.battery = battery                  # battery class instance
+        self.state = RobotState.idle            # current robot state 
+        self.nodeName = nodeName                # ROS node name "naming rule: Robot + robotId"
+        self.bbState = True                     # current blackboard state "online , offline"
+        self.currentTaskList = []               # assigned tasks list
+        self.currentTaskid = 0                  # points to the current task index in currentTaskList
+        self.taskCounter = -1                   # number of recived tasks
+
+
+        self.controller = Controller(self.nodeName)                                 # instance of controller class
+        rospy.Subscriber('taskBC',TaskMsg,self.getTaskCost)                         # Ros subscribers
+        rospy.Subscriber('taskAssign',TaskMsg,self.addTask)                         #
+        self.bbBackupSub = rospy.Subscriber('bbBackup',bbBackup,self.bbBackup)      #
+
+        self.pingTimer = rospy.Timer(rospy.Duration(1),self.pingBlackboard)         # ros timers for function callback over duration
+        self.bbBackupTimer = rospy.Timer(rospy.Duration(3),self.bbBackupActivate)   #
+        self.exeTimer = rospy.Timer(rospy.Duration(3),self.executeTask)             #
+
+
+        self.lock = Lock()              # Lock used to lock callback functions  
+        self.execLock = Lock()          # task execution lock
+        self.addtaskLock = Lock()       # adding a task lock
+        self.taskCostLock = Lock()      #
+        self.updateLock = Lock()        #
+        self.pingLock = Lock()          #
+        self.bbactiveLock = Lock()      #
+
+
+        
+        
   
-
+    # Callback triggered on 'bbBackup' topic updates the current blackboard and backup adress
     def bbBackup(self,data):
-        if self.lock.locked() is False:
-            self.lock.acquire()
-            self.bbAdress = data.bbAdress
-            self.buAdress = data.buAdress
-            # print('reached')
-            self.bbState = True
-            self.lock.release()
-
-
+        if self.lock.locked() is False:         # check lock
+            self.lock.acquire()         
+            self.bbAdress = data.bbAdress       # update adress
+            self.buAdress = data.buAdress       # update backup adress
+            self.bbState = True                 # blackboard is online
+            self.lock.release()                 
 
     
-    def registerRobot(robotId, topicMessage):
-        # send robot id and computation power to register robot in blackboard
-        pass
-
-    def addTask(self,data):  # add the recived task to the current task field
-        if data.robotId is self.robotId:
-            print(self.nodeName,'I have been assigned task nr:', data.taskId)
-
+    # callback triggered on 'taskAssign' topic
+    def addTask(self,data):
+        if self.addtaskLock.locked() is False:      #check lock
+            self.addtaskLock.acquire()              
+            if data.robotId is self.robotId:        # if msg is intended to this robot
+                # create a new task with the topic data values
+                self.newtask = Task(data.taskId,data.priority,data.taskType,data.pose,data.payload)
+                # add task to the list
+                self.currentTaskList.append(self.newtask)
+                # increase assigned task counter
+                self.taskCounter = self.taskCounter + 1
+            self.addtaskLock.release()
             
-            
+    # callback triggered over 'taskCost' topic calculates the cost of executing a task 
+    # to be implemented 
     def getTaskCost(self,data):
-        y = random.randint(1,10)
-        self.updateBlackboard(self.robotId,data.taskId,y)
+        if self.taskCostLock.locked() is False:
+            self.taskCostLock.acquire()
+            y = random.randint(1,10)
+            self.updateBlackboard(self.robotId,data.taskId,y)
+            self.taskCostLock.release()
 
+    # Sends the calculated cost to blackboard
     def updateBlackboard(self,robotId,taskId,taskCost):
-        tskCst = TaskCost()
-        tskCst.robotId = robotId
-        tskCst.taskId = taskId
-        tskCst.taskCost = taskCost
-        self.talker.pub_taskCost.publish(tskCst)
+        if self.updateLock.locked() is False:           # check lock
+            self.updateLock.acquire()
+            tskCst = TaskCost()                         # instance of custom ROS msg
+            tskCst.robotId = robotId            
+            tskCst.taskId = taskId
+            tskCst.taskCost = taskCost
+            self.talker.pub_taskCost.publish(tskCst)    # publish over topic
+            self.updateLock.release()
         
 
-    def executeTask(task, controller):
-        # execute each task step
-        pass
 
-    def setState(state):
+    # Callback to execute tasks in task list called over ROS timer
+    def executeTask(self,event):
+        if self.taskCounter >= 0:                                   # check if tasks are assigned
+            statemsg = TaskStateMsg()                               # instance of custom task state msg
+
+            if self.execLock.locked() is False:                     # check lock
+                self.execLock.acquire()                             # if not locked the lock
+
+                t= self.currentTaskList[self.currentTaskid]         # lockal variable to hold current task
+
+                if self.state is RobotState.idle:                   # if the robot is idle
+                    if t.taskState is not TaskState.Done:           # if the task is not done
+                        self.state = RobotState.busy                # set robot state to busy
+                        statemsg.taskId = t.taskId                  # initilize the state message with current task id 
+                        statemsg.taskState = 1                      # set task state to started 
+                        self.talker.pub_taskState.publish(statemsg) # update blackboard with new task state
+                        self.controller.startExecute(t)             # call task execution on controller class
+
+                if self.controller.state == 1:                      # if controller class is done
+                    statemsg.taskId = t.taskId                      # initilize state message with current task id
+                    statemsg.taskState = 2                          # set task state to done
+                    self.talker.pub_taskState.publish(statemsg)     # update blackboard with new task state
+                    
+                    self.state = RobotState.idle                    # set robot state to idle
+
+                    if self.taskCounter > self.currentTaskid:       # if there are more tasks in the list
+                        self.currentTaskid = self.currentTaskid + 1 # set current task to next task in the list
+                                                
+                self.execLock.release()                             # release the lock
+    
+    
+    # Set current robot state 
+    def setState(self,state):
         self.state = state
 
-    def cancelTask():
-        # update blackboard with task canceld
-        pass
-
-    def unregister():
-        # update blackboard
-        pass
-
+    # Callback triggered on ROS timer checks if the blackboard is online
     def pingBlackboard(self,event):
-        if  self.lock.locked() is False:
-            self.lock.acquire()
-            self.bbState = rosnode_ping(self.bbAdress,1)
-            # print (self.bbState,self.bbAdress,self.buAdress,self.talker.nodeName)
-            self.lock.release()
+        if  self.pingLock.locked() is False:                            # check lock
+            self.pingLock.acquire()
+            self.bbState = rosnode_ping(self.bbAdress,1)                # ping  blackboard node, assign result to bbstate
+            if self.bbState is False:                                   # if node is offline 
+                self.bbthread = Thread(target=self.bbBackupActivate)    # start backup function on a new thread
+            self.pingLock.release()
                     
-
         
-        
+    # backup function invoked incase blackboard is offline     
     def bbBackupActivate(self,event):
-        if self.lock.locked() is False:
-            self.lock.acquire()
-            # print('bbactivation reach')
-            if self.bbState is False:
-                if self.nodeName == self.buAdress:
-                    # print('condition activbation callback')
-                    self.pingTimer.shutdown()
-                    self.bbState = True
-                    self.bbAdress = self.talker.nodeName
-                    self.buAdress = 'robot2'
-                    bumsg = bbBackup()
-                    bumsg.bbAdress = self.bbAdress
-                    bumsg.buAdress = self.buAdress
-                    self.bb.robotnr = self.bb.robotnr -1
-                    self.bb.activateBlackboard(self.talker,'robot2')
-                    self.talker.pub_bbBackup.publish(bumsg)
-                    self.bbState = True
-                    
-                    self.pingTimer.shutdown()
-                    return
-            self.lock.release()
+        if self.bbactiveLock.locked() is False:                     # check lock
+            self.bbactiveLock.acquire()
+            if self.bbState is False:                               # check if blackboard is offline
+                if self.nodeName == self.buAdress:                  # if Robot is the bakcup blackboard
+                    self.bbState = True                             # blackboard state is online
+                    self.pingTimer.shutdown()                       # shutdown ping timer
+                    self.oldbbadress = self.bbAdress                # store the last known blackboard adress
+                    self.bb = Blackboard(1,self.talker)             # initilize a new instance of blackboard
+                    if not self.oldbbadress == 'blackboard':        # if last blackboard was a robot
+                        self.bb.robotnr = self.bb.robotnr -1        # decrease the number of online robots
+                    self.bb.buAdress = 'robot2'                     # set next back up blackboard aress static for testing
+            self.bbactiveLock.release()
 
 
-    def analyzeTask():  # split the task into a list of steps
-        self.currentTask.stepsList.append(TaskStep(stepType,pose))
+
+

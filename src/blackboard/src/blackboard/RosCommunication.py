@@ -1,45 +1,40 @@
-import rospy
-from std_msgs.msg import String
-from blackboard.msg import TaskMsg
-from blackboard.msg import bbBackup
-from blackboard.msg import TaskCost
+#---------------------------------------------------------------- 
+# Blackboard distributed fleet manager - Fontys lectoraat
+# Sep 2020 - Feb 2021 internship Eindhoven BIC
+# Hussam Ayoub, 356203@student.fontys.nl
 
-class Talker(): #change to multy topic publisher
+#----------------------------Description------------------------- 
+# 
+# The Talker class is responsable for initilizing a ROS
+# Node and its publishers on specified topics.
+#----------------------------------------------------------------
+
+
+import rospy
+from std_msgs.msg import String             # Custom built ROS messages
+from blackboard.msg import TaskMsg          #
+from blackboard.msg import bbBackup         #
+from blackboard.msg import TaskCost         #
+from blackboard.msg import bbsynch          #
+from blackboard.msg import TaskStateMsg     #
+
+
+
+class Talker():
+    # class constructor with node name variable
     def __init__(self,nodeName):
+        # assign passed node name
         self.nodeName = nodeName
-        self.pub_newTask = rospy.Publisher('newTask', TaskMsg,queue_size=10)
-        self.pub_robotState = rospy.Publisher('robotState', String,queue_size=10)
-        self.pub_bbSync = rospy.Publisher('BbSync', String,queue_size=10)
-        self.pub_taskBC = rospy.Publisher('taskBC', TaskMsg,queue_size=10)
-        self.pub_bbBackup = rospy.Publisher('bbBackup', bbBackup,queue_size=10)
-        self.pub_taskAssign = rospy.Publisher('taskAssign', TaskMsg,queue_size=10)
-        self.pub_taskCost = rospy.Publisher('taskCost', TaskCost,queue_size=10)
-        self.pub_taskAssign = rospy.Publisher('taskAssign', TaskMsg,queue_size=10)
-        rospy.init_node(nodeName, anonymous=False)
+        # init publishers:
+        self.pub_newTask = rospy.Publisher('newTask', TaskMsg,queue_size=1)                 # new task publisher
+        self.pub_robotState = rospy.Publisher('robotState', String,queue_size=1)            # robot state to simulate defect
+        self.pub_bbSync = rospy.Publisher('BbSync', bbsynch,queue_size=1)                   # syncronize blackboard task list
+        self.pub_taskBC = rospy.Publisher('taskBC', TaskMsg,queue_size=1)                   # broadcast a task over topic
+        self.pub_bbBackup = rospy.Publisher('bbBackup', bbBackup,queue_size=1)              # blackboard and backup adresses
+        self.pub_taskAssign = rospy.Publisher('taskAssign', TaskMsg,queue_size=1)           # assign a task to robot
+        self.pub_taskCost = rospy.Publisher('taskCost', TaskCost,queue_size=1)              # send task cost from robots
+        self.pub_taskState = rospy.Publisher('TaskStateMsg', TaskStateMsg,queue_size=1)     # update task state in blackboare
+        rospy.init_node(nodeName, anonymous=False)                                          # initilize ROS node
 
         
 
-class Listener: # change to multitopick listerner somehow
-    def callback1(self,data):
-        print(data)
-        print(" recived111")
-
-    def callback2(self,data):
-        print(data)
-        print(" recived222")
-
-
-    def callback3(self,data):
-        print(data)
-        print(" recived333")
-
-    def callback4(self,data):
-        print(data)
-        print(" recived444")
-
-    def __init__(self,topic1,topic2,topic3,topic4,type1,type2,type3,type4):
-        rospy.Subscriber(topic1,type1,self.callback1)
-        rospy.Subscriber(topic2,type2,self.callback2)
-        rospy.Subscriber(topic3,type3,self.callback3)
-        rospy.Subscriber(topic4,type4,self.callback3)
-#add rospyspin

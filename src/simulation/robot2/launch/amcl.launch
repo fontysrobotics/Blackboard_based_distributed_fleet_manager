@@ -6,7 +6,7 @@
 		
     <!-- We have a holonomic robot! Overwrite yaml config here! -->
 		<param name="odom_model_type" value="omni" />
-		<param name="initial_pose_x" value="3.0" />
+		<param name="initial_pose_x" value="1" />
 		<param name="initial_pose_y" value="0" />
 		<param name="initial_pose_a" value="0" />
 	
