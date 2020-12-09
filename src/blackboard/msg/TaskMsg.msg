@@ -3,6 +3,6 @@ int16 priority
 int16 taskType
 int16 payload
 int16 taskState
-int16 cost
+float32 cost
 int16 robotId
 geometry_msgs/Pose[] pose

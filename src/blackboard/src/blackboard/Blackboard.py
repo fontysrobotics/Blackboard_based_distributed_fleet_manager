@@ -131,6 +131,7 @@ class Blackboard:
             tmsg.payload = task.payload                 #
             tmsg.taskState = task.taskState.value       #
             tmsg.pose = task.pose                       #
+            tmsg.cost = task.cost
             task.taskState = TaskState.Assigned         # change the task state to assigned
             self.talker.pub_taskAssign.publish(tmsg)    # publish the task over the mentioned topic
 

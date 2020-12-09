@@ -44,7 +44,7 @@ class Task:
         self.pose = pose
         self.payload = payload
         self.taskState = TaskState.Waitting     # when task is created its in waitting state
-        self.cost = 10                          # cost is set to max to be adjusted when calculated later
+        self.cost = 1000                        # cost is set to max to be adjusted when calculated later
         self.robotId = -1                       # task is not assigned " robot id -1 does not exist "
         self.recivedCosts = 0                   # number of recived costs from robots 
         self.stepsList = []                     # a list to hold task steps when a task is analyzed

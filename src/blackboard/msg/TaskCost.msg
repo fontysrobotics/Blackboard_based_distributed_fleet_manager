@@ -1,3 +1,3 @@
 int16 taskId
-int16 taskCost
+float32 taskCost
 int16 robotId

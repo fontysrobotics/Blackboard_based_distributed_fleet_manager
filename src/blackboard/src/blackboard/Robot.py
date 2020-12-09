@@ -20,6 +20,7 @@ from enum import Enum
 import rospy   
 
 from geometry_msgs.msg import Pose                             # ros pose msg
+from geometry_msgs.msg import PoseWithCovarianceStamped
 from rosnode import rosnode_ping                               # ROS node ping                  
 from blackboard.msg import TaskMsg                             # ROS custom msgs
 from blackboard.msg import TaskCost                            #
@@ -31,8 +32,10 @@ from RosCommunication import Talker                            # blackboard pack
 from Blackboard import Blackboard                              #                        
 from blackboard.Controller import Controller                   #
 from Task import Task, TaskState, TaskType, TaskStep, StepType #
+from blackboard.Battery import Battery
 
 from threading import Lock,Thread                              # Python threading
+import math
 
 
 # Robot state enums
@@ -65,10 +68,15 @@ class Robot:
         self.currentTaskid = 0                  # points to the current task index in currentTaskList
         self.taskCounter = -1                   # number of recived tasks
 
+        self.amclx = 0                          # holds amcl topic pose
+        self.amcly = 0                          #
+
 
         self.controller = Controller(self.nodeName)                                 # instance of controller class
         rospy.Subscriber('taskBC',TaskMsg,self.getTaskCost)                         # Ros subscribers
         rospy.Subscriber('taskAssign',TaskMsg,self.addTask)                         #
+        amclPose = '/'+self.nodeName+'/amcl_pose'                                    # topic name based on robot id
+        rospy.Subscriber(amclPose,PoseWithCovarianceStamped,self.initialPose)       # 
         self.bbBackupSub = rospy.Subscriber('bbBackup',bbBackup,self.bbBackup)      #
 
         self.pingTimer = rospy.Timer(rospy.Duration(1),self.pingBlackboard)         # ros timers for function callback over duration
@@ -85,7 +93,11 @@ class Robot:
         self.bbactiveLock = Lock()      #
 
 
-        
+    # Callback triggered on '/robotx/amcl_pose' topic updates robot amclx and amcly
+    def initialPose(self,data):
+        if self.taskCostLock.locked() is False:
+            self.amclx = data.pose.pose.position.x            
+            self.amcly = data.pose.pose.position.y
         
   
     # Callback triggered on 'bbBackup' topic updates the current blackboard and backup adress
@@ -105,6 +117,7 @@ class Robot:
             if data.robotId is self.robotId:        # if msg is intended to this robot
                 # create a new task with the topic data values
                 self.newtask = Task(data.taskId,data.priority,data.taskType,data.pose,data.payload)
+                self.newtask.cost = data.cost
                 # add task to the list
                 self.currentTaskList.append(self.newtask)
                 # increase assigned task counter
@@ -116,8 +129,44 @@ class Robot:
     def getTaskCost(self,data):
         if self.taskCostLock.locked() is False:
             self.taskCostLock.acquire()
-            y = random.randint(1,10)
-            self.updateBlackboard(self.robotId,data.taskId,y)
+            cost = 1000
+            cr = 10
+            energyTolerance = 2
+            
+
+            if data.payload > self.payload:
+                self.updateBlackboard(self.robotId,data.taskId,cost)
+                print('first execption')
+                self.taskCostLock.release()
+                return
+
+            x = self.amclx
+            y = self.amcly
+            distance = -1
+
+            for pos in data.pose:
+                distance = distance + (math.sqrt((pos.position.x - x)**2) + math.sqrt((pos.position.y - y)**2))
+                x = pos.position.x
+                y = pos.position.x
+
+
+            fr = cr * (data.payload + self.payload)
+            en = fr * distance
+
+            
+            energyCost = en / self.battery.getVolt()
+            print(self.nodeName,'    distance:',distance,'     Energy:',energyCost)
+
+            if energyCost >= self.battery.getAmps()/energyTolerance:
+                cost = 1000
+                self.updateBlackboard(self.robotId,data.taskId,cost)
+                print('second exception')
+                self.taskCostLock.release()
+                return
+
+            cost = energyCost
+            self.updateBlackboard(self.robotId,data.taskId,cost)
+
             self.taskCostLock.release()
 
     # Sends the calculated cost to blackboard
@@ -149,14 +198,16 @@ class Robot:
                         statemsg.taskId = t.taskId                  # initilize the state message with current task id 
                         statemsg.taskState = 1                      # set task state to started 
                         self.talker.pub_taskState.publish(statemsg) # update blackboard with new task state
+                        print('Starting Task with Cost',t.cost,'  BatLevel',self.battery.level)                               # debug
                         self.controller.startExecute(t)             # call task execution on controller class
 
                 if self.controller.state == 1:                      # if controller class is done
-                    statemsg.taskId = t.taskId                      # initilize state message with current task id
-                    statemsg.taskState = 2                          # set task state to done
-                    self.talker.pub_taskState.publish(statemsg)     # update blackboard with new task state
-                    
-                    self.state = RobotState.idle                    # set robot state to idle
+                    if self.state is RobotState.busy:                   # if the robot is idle
+                        statemsg.taskId = t.taskId                      # initilize state message with current task id
+                        statemsg.taskState = 2                          # set task state to done
+                        self.talker.pub_taskState.publish(statemsg)     # update blackboard with new task state
+                        self.battery.updateLevel(t.cost)                # update robot battery level
+                        self.state = RobotState.idle                    # set robot state to idle
 
                     if self.taskCounter > self.currentTaskid:       # if there are more tasks in the list
                         self.currentTaskid = self.currentTaskid + 1 # set current task to next task in the list
