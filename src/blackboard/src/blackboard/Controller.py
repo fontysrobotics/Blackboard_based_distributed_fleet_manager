@@ -26,29 +26,29 @@ from threading import Thread
 class MoveBaseCommand:
     def __init__(self, robotid):                                # pass robot id to use in movebase topic name
         self.robotid = robotid
-        self.moveBaseTopic = '/'+self.robotid+'/move_base'      # set movebase topic "RULE: /Robotx/move_base" x is robot id
+        moveBaseTopic = robotid+"/move_base"     # set movebase topic "RULE: /Robotx/move_base" x is robot id
         self.client = actionlib.SimpleActionClient(
-            self.moveBaseTopic, MoveBaseAction)                 # movebase action clinet
+            moveBaseTopic, MoveBaseAction)                      # movebase action clinet
         self.client.wait_for_server()                           # connect to movebase server
         self.state = 0                                          # holds movebase object state
 
         
     # send a goal to movebase action server
     def sendGoal(self, goal):
-        self.movebasegoal = MoveBaseGoal()                                  # instance of movebase goal
-        self.movebasegoal.target_pose.header.frame_id = "map"               # with respect to global frame " map "
-        self.movebasegoal.target_pose.header.stamp = rospy.Time.now()       # time stamp, moment of sending the goal
-        self.movebasegoal.target_pose.pose.position.x = goal.position.x     # goal position x, passed goal
-        self.movebasegoal.target_pose.pose.position.y = goal.position.y     # goal position y, passed goal
-        self.movebasegoal.target_pose.pose.orientation.w = 1.0              
-        self.client.send_goal(self.movebasegoal)                            # send the goal instance
+        movebasegoal = MoveBaseGoal()                                  # instance of movebase goal
+        movebasegoal.target_pose.header.frame_id = "map"               # with respect to global frame " map "
+        movebasegoal.target_pose.header.stamp = rospy.Time.now()       # time stamp, moment of sending the goal
+        movebasegoal.target_pose.pose.position.x = goal.position.x     # goal position x, passed goal
+        movebasegoal.target_pose.pose.position.y = goal.position.y     # goal position y, passed goal
+        movebasegoal.target_pose.pose.orientation.w = 1.0              
+        self.client.send_goal(movebasegoal)                            # send the goal instance
 
 # class controller start
 class Controller:
     def __init__(self, robotid):
         self.stepcounter = 0                                # holds the number of steps to execute
         self.robotid = robotid                              # used to be passed to movebase command object
-        self.mb = MoveBaseCommand(self.robotid)             # init movebase command object
+        self.mb = MoveBaseCommand(robotid)                  # init movebase command object
         self.state = 0                                      # controller state idle
 
 

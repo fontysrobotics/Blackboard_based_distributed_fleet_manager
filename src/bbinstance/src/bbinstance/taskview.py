@@ -110,9 +110,15 @@ class Ui_MainWindow(object):
                     markerpose.position.z = 0.5
                     scale = 0.5
                     id = t.taskId+stepCounter
-                    color = 'green'
+                    color = 'gray'
+                    if t.robotId == 1:
+                        color = 'green'
                     if t.robotId == 2:
                         color = 'red'
+                    if t.robotId == 3:
+                        color = 'orange'
+                    if t.robotId == 4:
+                        color = 'yellow'
                     if finalStep == lenght:
                         markerpose.position.z = 1.0
                         scale = 1.0

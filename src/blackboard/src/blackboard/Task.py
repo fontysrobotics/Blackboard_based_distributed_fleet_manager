@@ -45,6 +45,7 @@ class Task:
         self.payload = payload
         self.taskState = TaskState.Waitting     # when task is created its in waitting state
         self.cost = 1000                        # cost is set to max to be adjusted when calculated later
+        self.energyCost = 0                     # amps used to execute task, added to simulate battery usage
         self.robotId = -1                       # task is not assigned " robot id -1 does not exist "
         self.recivedCosts = 0                   # number of recived costs from robots 
         self.stepsList = []                     # a list to hold task steps when a task is analyzed

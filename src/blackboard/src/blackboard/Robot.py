@@ -67,12 +67,12 @@ class Robot:
         self.currentTaskList = []               # assigned tasks list
         self.currentTaskid = 0                  # points to the current task index in currentTaskList
         self.taskCounter = -1                   # number of recived tasks
-
+        self.currentTask = None
         self.amclx = 0                          # holds amcl topic pose
         self.amcly = 0                          #
 
 
-        self.controller = Controller(self.nodeName)                                 # instance of controller class
+        self.controller = Controller(nodeName)                                 # instance of controller class
         rospy.Subscriber('taskBC',TaskMsg,self.getTaskCost)                         # Ros subscribers
         rospy.Subscriber('taskAssign',TaskMsg,self.addTask)                         #
         amclPose = '/'+self.nodeName+'/amcl_pose'                                    # topic name based on robot id
@@ -81,7 +81,7 @@ class Robot:
 
         self.pingTimer = rospy.Timer(rospy.Duration(1),self.pingBlackboard)         # ros timers for function callback over duration
         self.bbBackupTimer = rospy.Timer(rospy.Duration(3),self.bbBackupActivate)   #
-        self.exeTimer = rospy.Timer(rospy.Duration(3),self.executeTask)             #
+        self.exeTimer = rospy.Timer(rospy.Duration(1),self.executeTask)             #
 
 
         self.lock = Lock()              # Lock used to lock callback functions  
@@ -118,24 +118,37 @@ class Robot:
                 # create a new task with the topic data values
                 self.newtask = Task(data.taskId,data.priority,data.taskType,data.pose,data.payload)
                 self.newtask.cost = data.cost
-                # add task to the list
-                self.currentTaskList.append(self.newtask)
-                # increase assigned task counter
-                self.taskCounter = self.taskCounter + 1
-            self.addtaskLock.release()
+                self.newtask.energyCost = data.energyCost
+                self.newtask.taskState = TaskState.Assigned
+                # add task to the list check the list for task priority insert in right order or at the end
+                counter = 0                                                     # stores the index of the current list item
+                for t in self.currentTaskList:                                  # loop over the current task list
+                    if t.priority < self.newtask.priority:                      # compare task priority
+                        if t.taskState is TaskState.Assigned:                   # check if the task is not in execution yet
+                            self.currentTaskList.insert(counter,self.newtask)   # insert the new task at the index
+                            return                                              # if conditions met break the function
+                    counter = counter + 1                                       # increase the counter 
+                self.currentTaskList.append(self.newtask)                       # if condition are not met append at the end of list             
+                self.taskCounter = self.taskCounter + 1                         # increase assigned task counter                       
+            self.addtaskLock.release()                                          # release thread lock
             
+    
+    
     # callback triggered over 'taskCost' topic calculates the cost of executing a task 
-    # to be implemented 
+    # current task  
     def getTaskCost(self,data):
         if self.taskCostLock.locked() is False:
             self.taskCostLock.acquire()
             cost = 1000
             cr = 10
-            energyTolerance = 2
+            energyTolerance = 10
+            energyAtTask = 0
+            preTasks = 1
+
             
 
             if data.payload > self.payload:
-                self.updateBlackboard(self.robotId,data.taskId,cost)
+                self.updateBlackboard(self.robotId,data.taskId,cost,0)
                 print('first execption')
                 self.taskCostLock.release()
                 return
@@ -159,24 +172,39 @@ class Robot:
 
             if energyCost >= self.battery.getAmps()/energyTolerance:
                 cost = 1000
-                self.updateBlackboard(self.robotId,data.taskId,cost)
+                self.updateBlackboard(self.robotId,data.taskId,cost,0)
                 print('second exception')
                 self.taskCostLock.release()
                 return
 
-            cost = energyCost
-            self.updateBlackboard(self.robotId,data.taskId,cost)
+
+            for t in self.currentTaskList:
+                if t.priority >= data.priority:
+                    energyAtTask = energyAtTask + t.energyCost
+                    preTasks = preTasks + 1
+            energyAtTask = self.battery.getAmps() - energyAtTask
+            
+            if energyAtTask <= energyTolerance:
+                cost = 1000
+                self.updateBlackboard(self.robotId,data.taskId,cost,0)
+                print('third exception')
+                self.taskCostLock.release()
+                return
+            if energyAtTask is not 0:
+                cost = energyCost * preTasks / energyAtTask
+            self.updateBlackboard(self.robotId,data.taskId,cost,energyCost)
 
             self.taskCostLock.release()
 
     # Sends the calculated cost to blackboard
-    def updateBlackboard(self,robotId,taskId,taskCost):
+    def updateBlackboard(self,robotId,taskId,taskCost,energyCost):
         if self.updateLock.locked() is False:           # check lock
             self.updateLock.acquire()
             tskCst = TaskCost()                         # instance of custom ROS msg
             tskCst.robotId = robotId            
             tskCst.taskId = taskId
             tskCst.taskCost = taskCost
+            tskCst.energyCost = energyCost
             self.talker.pub_taskCost.publish(tskCst)    # publish over topic
             self.updateLock.release()
         
@@ -186,32 +214,34 @@ class Robot:
     def executeTask(self,event):
         if self.taskCounter >= 0:                                   # check if tasks are assigned
             statemsg = TaskStateMsg()                               # instance of custom task state msg
-
             if self.execLock.locked() is False:                     # check lock
                 self.execLock.acquire()                             # if not locked the lock
 
-                t= self.currentTaskList[self.currentTaskid]         # lockal variable to hold current task
+                if self.state is RobotState.idle:
+                    for tasks in self.currentTaskList:                  # loop to assign current task
+                        if tasks.taskState is TaskState.Assigned:       # changed after ordering the list by prioritys
+                            self.currentTask = tasks
+                            break
 
+                
                 if self.state is RobotState.idle:                   # if the robot is idle
-                    if t.taskState is not TaskState.Done:           # if the task is not done
+                    if self.currentTask.taskState is not TaskState.Done:           # if the task is not done
                         self.state = RobotState.busy                # set robot state to busy
-                        statemsg.taskId = t.taskId                  # initilize the state message with current task id 
+                        statemsg.taskId = self.currentTask.taskId                  # initilize the state message with current task id 
                         statemsg.taskState = 1                      # set task state to started 
+                        self.currentTask.taskState = TaskState.Started
                         self.talker.pub_taskState.publish(statemsg) # update blackboard with new task state
-                        print('Starting Task with Cost',t.cost,'  BatLevel',self.battery.level)                               # debug
-                        self.controller.startExecute(t)             # call task execution on controller class
+                        self.controller.startExecute(self.currentTask)             # call task execution on controller class
 
                 if self.controller.state == 1:                      # if controller class is done
                     if self.state is RobotState.busy:                   # if the robot is idle
-                        statemsg.taskId = t.taskId                      # initilize state message with current task id
+                        statemsg.taskId = self.currentTask.taskId                      # initilize state message with current task id
                         statemsg.taskState = 2                          # set task state to done
+                        self.currentTask.taskState = TaskState.Done
                         self.talker.pub_taskState.publish(statemsg)     # update blackboard with new task state
-                        self.battery.updateLevel(t.cost)                # update robot battery level
+                        self.battery.updateLevel(self.currentTask.energyCost)          # update robot battery level
                         self.state = RobotState.idle                    # set robot state to idle
-
-                    if self.taskCounter > self.currentTaskid:       # if there are more tasks in the list
-                        self.currentTaskid = self.currentTaskid + 1 # set current task to next task in the list
-                                                
+                              
                 self.execLock.release()                             # release the lock
     
     

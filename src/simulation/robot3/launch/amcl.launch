@@ -1,13 +1,13 @@
 <launch>
 
-<node pkg="amcl" type="amcl" name="amcl1" output="screen">
+<node pkg="amcl" type="amcl" name="amcl3" output="screen">
 		
     <rosparam file="$(find robot3)/cfg/amcl_params.yaml" command="load" />
 		
     <!-- We have a holonomic robot! Overwrite yaml config here! -->
 		<param name="odom_model_type" value="omni" />
-		<param name="initial_pose_x" value="-1" />
-		<param name="initial_pose_y" value="0" />
+		<param name="initial_pose_x" value="1" />
+		<param name="initial_pose_y" value="3" />
 		<param name="initial_pose_a" value="0" />
 	
     <param name="odom_frame_id"             value="robot3_odom"/>

@@ -32,7 +32,7 @@ class Blackboard:
         
         self.state   = state                         # 0/1 state used to initilize an inactive instance
         self.talker  = talker                        # init talker
-        self.robotnr = 2                             # Keeps track of current Nr of active robots "static for test purposes"
+        self.robotnr = 4                             # Keeps track of current Nr of active robots "static for test purposes"
 
         if state is 1:                               # Incase the blackboard instance is active declare variables
             self.taskList = []                       # Local list of Tasks                     
@@ -115,6 +115,7 @@ class Blackboard:
                 if t.cost  >= data.taskCost:        # if recived cost is lower that current cost
                     t.robotId = data.robotId        # adjust robot id field in the task
                     t.cost = data.taskCost          # adjust the cost
+                    t.energyCost = data.energyCost  # adjust energy cost
                 t.recivedCosts = t.recivedCosts+1   # increase the recived costs counter
             if t.recivedCosts == self.robotnr:      # if the blackboard recived costs from all online robots
                 self.assignTask(t)                  # assign the task to the robot with lowest cost
@@ -131,7 +132,8 @@ class Blackboard:
             tmsg.payload = task.payload                 #
             tmsg.taskState = task.taskState.value       #
             tmsg.pose = task.pose                       #
-            tmsg.cost = task.cost
+            tmsg.cost = task.cost                       #
+            tmsg.energyCost = task.energyCost           #
             task.taskState = TaskState.Assigned         # change the task state to assigned
             self.talker.pub_taskAssign.publish(tmsg)    # publish the task over the mentioned topic
 

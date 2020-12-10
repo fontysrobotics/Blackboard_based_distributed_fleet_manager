@@ -1,0 +1,1 @@
+controller_joint_names: ['', 'jarmLink0', 'jarmLink1', 'jarmLink2', 'jarmLink3', 'jarmLink4', 'jarmLink5', 'wheelFrontLeft', 'wheelFrontRight', 'wheelBackLeft', 'wheelBackRight', ]

@@ -7,6 +7,8 @@ Panels:
         - /Global Options1
         - /Status1
         - /Polygon2
+        - /Polygon3
+        - /Polygon4
       Splitter Ratio: 0.5
     Tree Height: 681
   - Class: rviz/Selection
@@ -96,6 +98,22 @@ Visualization Manager:
       Namespaces:
         Arrow: true
       Queue Size: 100
+      Value: true
+    - Alpha: 1
+      Class: rviz/Polygon
+      Color: 245; 121; 0
+      Enabled: true
+      Name: Polygon
+      Topic: /move_base3/global_costmap/footprint
+      Unreliable: false
+      Value: true
+    - Alpha: 1
+      Class: rviz/Polygon
+      Color: 252; 233; 79
+      Enabled: true
+      Name: Polygon
+      Topic: /move_base4/global_costmap/footprint
+      Unreliable: false
       Value: true
   Enabled: true
   Global Options:
