@@ -1,42 +1,70 @@
 <?xml version="1.0" ?>
 <launch>
 
-<include file="$(find gazebo_ros)/launch/empty_world.launch">
-    <arg name="world_name" value="$(find robot1)/worlds/house.world" />
-    <arg name="paused" value="false" />
-    <arg name="use_sim_time" value="true" />
-    <arg name="gui" value="true" />
-    <arg name="headless" value="false" />
-    <arg name="debug" value="false" />
-  </include>  
- 
-<param name="robot_description" command="$(find xacro)/xacro '$(find robot1)/urdf/robot_description_urdf.urdf'" />
+    <group ns = "robot1">
+	<param name="tf_prefix" value="robot1_tf" />
+        <param name="robot_description" command="$(find xacro)/xacro '$(find turtlebot3_description)/urdf/turtlebot3_burger.urdf.xacro'" />
+        <node name="robot_state_publisher1" pkg="robot_state_publisher" type="robot_state_publisher">
+            
+        </node>  
+        <node name="urdf_spawner" pkg="gazebo_ros" type="spawn_model" respawn="false" output="screen" args="-urdf -x -3 -y 0 -z 0  -model robot1 -param robot_description ">
+        </node>
 
-    
+        </group>
 
 
-    <node name="urdf_spawner1" pkg="gazebo_ros" type="spawn_model" respawn="false" output="screen" args="-urdf -x -1 -y 0 -z 0  -model robot1 -param robot_description ">
-    
-</node>
+
+    <group ns = "robot2">
+	<param name="tf_prefix" value="robot2_tf" />
+        <param name="robot_description" command="$(find xacro)/xacro '$(find turtlebot3_description)/urdf/turtlebot3_burger.urdf.xacro'" />
+        <node name="robot_state_publisher1" pkg="robot_state_publisher" type="robot_state_publisher">
+            
+        </node>  
+        <node name="urdf_spawner" pkg="gazebo_ros" type="spawn_model" respawn="false" output="screen" args="-urdf -x -1 -y 0 -z 0  -model robot2 -param robot_description ">
+        </node>
+
+        </group>
 
 
-<node name="robot_state_publisher1" pkg="robot_state_publisher" type="robot_state_publisher">
-
-</node>
-    <node name="joint_state_publisher1" pkg="joint_state_publisher" type="joint_state_publisher">
-
-    </node>
 
 
-  <!-- Run the map server -->
-  <node name="map_server" pkg="map_server" type="map_server" args="$(find robot1)/maps/aa.yaml">
-    <param name="frame_id" value="map" />
-  </node>
+    <group ns = "robot3">
+	<param name="tf_prefix" value="robot3_tf" />
+        <param name="robot_description" command="$(find xacro)/xacro '$(find turtlebot3_description)/urdf/turtlebot3_burger.urdf.xacro'" />
+        <node name="robot_state_publisher1" pkg="robot_state_publisher" type="robot_state_publisher">
+            
+        </node>  
+        <node name="urdf_spawner" pkg="gazebo_ros" type="spawn_model" respawn="false" output="screen" args="-urdf -x 1 -y 0 -z 0  -model robot3 -param robot_description ">
+        </node>
+
+        </group>
 
 
-    <include file="$(find robot1)/launch/amcl.launch" />
-    <include file="$(find robot1)/launch/move_base.launch" />
 
-  <node type="rviz" name="rviz" pkg="rviz" args="-d $(find robot1)/rviz/rviz_trobots.rviz" />
+
+    <group ns = "robot4">
+	<param name="tf_prefix" value="robot4_tf" />
+        <param name="robot_description" command="$(find xacro)/xacro '$(find turtlebot3_description)/urdf/turtlebot3_burger.urdf.xacro'" />
+        <node name="robot_state_publisher1" pkg="robot_state_publisher" type="robot_state_publisher">
+            
+        </node>  
+        <node name="urdf_spawner" pkg="gazebo_ros" type="spawn_model" respawn="false" output="screen" args="-urdf -x 3 -y 0 -z 0  -model robot4 -param robot_description ">
+        </node>
+
+        </group>
+
+
+      <include file="$(find robot1)/launch/amcl1.launch" />
+        <include file="$(find robot1)/launch/move_base1.launch" />
+<include file="$(find robot1)/launch/amcl2.launch" />
+        <include file="$(find robot1)/launch/move_base2.launch" />
+<include file="$(find robot1)/launch/amcl3.launch" />
+        <include file="$(find robot1)/launch/move_base3.launch" />
+
+
+<include file="$(find robot1)/launch/amcl4.launch" />
+        <include file="$(find robot1)/launch/move_base4.launch" />
+
+
 
 </launch>

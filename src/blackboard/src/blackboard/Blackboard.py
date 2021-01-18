@@ -44,7 +44,7 @@ class Blackboard:
             rospy.Subscriber('TaskStateMsg',TaskStateMsg,self.taskStateUpdate)
 
             # ROS Timers invoked every rospy.Duration in seconds (duration in seconds , callback function)
-            self.bbBackuptimer = rospy.Timer(rospy.Duration(6),self.bbBackup)
+            self.bbBackuptimer = rospy.Timer(rospy.Duration(1),self.bbBackup)
             self.syncTimer = rospy.Timer(rospy.Duration(2),self.bbsynch)
          
             print('new blackboard object created')    # Logging Message

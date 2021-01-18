@@ -2,9 +2,9 @@
 <robot name="my_robot" xmlns:xacro="http://www.ros.org/wiki/xacro">
 
   <!-- #region footprint -->
-  <link name="robot1_base_footprint" />
+  <link name="base_footprint" />
   <joint name="base_joint" type="fixed">
-    <parent link="robot1_base_footprint" />
+    <parent link="base_footprint" />
     <child link="base_link" />
     <origin xyz="0 0 0" rpy="0 0 0" />
   </joint>
@@ -18,7 +18,7 @@
     <visual>
       <origin xyz="0 0 0" rpy="0 0 0" />
       <geometry>
-        <box size="0.2 0.2 0.2" />
+        <box size="0.3 0.3 0.1" />
       </geometry>
       <material name="">
         <color rgba="1 0 0 1" />
@@ -27,7 +27,7 @@
     <collision>
       <origin xyz="0 0 0" rpy="0 0 0" />
       <geometry>
-        <box size="0.2 0.2 0.2" />
+        <box size="0.3 0.3 0.1" />
       </geometry>
     </collision>
   </link>
@@ -36,13 +36,13 @@
     <visual>
       <origin xyz="0 0 0" rpy="0 0 0" />
       <geometry>
-        <cylinder length="0.06" radius="0.08" />
+        <cylinder length="0.06" radius="0.04" />
       </geometry>
     </visual>
   </link>
 
   <joint name="laser_joint" type="fixed">
-    <origin xyz="0 0 0.11" rpy="0 0 0" />
+    <origin xyz="0 0 0.06" rpy="0 0 0" />
     <parent link="base_link" />
     <child link="laser" />
   </joint>
@@ -74,7 +74,7 @@
 				</noise>
 			</ray>
 			<plugin name="gazebo_ros_head_hokuyo_controller" filename="libgazebo_ros_gpu_laser.so">
-				<topicName>robot1_scan</topicName>
+				<topicName>scan</topicName>
 				<frameName>laser</frameName>
 			</plugin>
 		</sensor>
@@ -86,13 +86,18 @@
   <gazebo>
     <plugin name="object_controller" filename="libgazebo_ros_planar_move.so">
 
-      <commandTopic>/robot1/cmd_vel</commandTopic>
-      <odometryTopic>/robot1/odom</odometryTopic>
-      <odometryFrame>robot1_odom</odometryFrame>
+      <commandTopic>cmd_vel</commandTopic>
+      <odometryTopic>odom</odometryTopic>
+      <odometryFrame>odom</odometryFrame>
       <odometryRate>20.0</odometryRate>
-      <robotBaseFrame>robot1_base_footprint</robotBaseFrame>
+      <robotBaseFrame>base_footprint</robotBaseFrame>
     </plugin>
   </gazebo>
 <!--#endregion holonomic-->
 
+
+
+  <gazebo reference="base_link">
+    <material>Gazebo/Green</material>
+  </gazebo>
 </robot>

@@ -79,7 +79,7 @@ class Robot:
         rospy.Subscriber(amclPose,PoseWithCovarianceStamped,self.initialPose)       # 
         self.bbBackupSub = rospy.Subscriber('bbBackup',bbBackup,self.bbBackup)      #
 
-        self.pingTimer = rospy.Timer(rospy.Duration(1),self.pingBlackboard)         # ros timers for function callback over duration
+        self.pingTimer = rospy.Timer(rospy.Duration(5),self.pingBlackboard)         # ros timers for function callback over duration
         self.bbBackupTimer = rospy.Timer(rospy.Duration(3),self.bbBackupActivate)   #
         self.exeTimer = rospy.Timer(rospy.Duration(1),self.executeTask)             #
 
@@ -269,9 +269,24 @@ class Robot:
                     self.pingTimer.shutdown()                       # shutdown ping timer
                     self.oldbbadress = self.bbAdress                # store the last known blackboard adress
                     self.bb = Blackboard(1,self.talker)             # initilize a new instance of blackboard
-                    if not self.oldbbadress == 'blackboard':        # if last blackboard was a robot
-                        self.bb.robotnr = self.bb.robotnr -1        # decrease the number of online robots
-                    self.bb.buAdress = 'robot2'                     # set next back up blackboard aress static for testing
+                    
+                    if self.nodeName == 'robot1':                    # hard coded for testing will be replaced with a list
+                        self.bb.robotnr = 4
+                        self.bb.buAdress = 'robot2'                     
+                    
+                    if self.nodeName == 'robot2':
+                        self.bb.robotnr = 3
+                        self.bb.buAdress = 'robot3'
+
+                    if self.nodeName == 'robot3':
+                        self.bb.robotnr = 2
+                        self.bb.buAdress = 'robot4'
+
+
+                    if self.nodeName == 'robot4':
+                        self.bb.robotnr = 1
+                        self.bb.buAdress = 'robot4'
+                        
             self.bbactiveLock.release()
 
 
