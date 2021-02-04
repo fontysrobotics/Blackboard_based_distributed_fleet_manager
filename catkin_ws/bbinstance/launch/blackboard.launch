@@ -1,0 +1,14 @@
+<?xml version="1.0" ?>
+<launch>
+  <node pkg="bbinstance" name="blackboard" type="blackboardinstance.py" output="screen"/>
+  <node pkg="bbinstance" name="gui" type="gui.py" output="screen"/>
+  <!--
+  <node pkg="bbinstance" name="taskview" type="taskview.py" output="screen"/>-->
+  <node pkg="bbinstance" name="robot1" type="robotInstance.py" output="screen"/>
+
+<node pkg="bbinstance" name="robot2" type="robotInstance2.py" output="screen"/>
+<node pkg="bbinstance" name="robot3" type="robotInstance3.py" output="screen"/>
+<node pkg="bbinstance" name="robot4" type="robotInstance4.py" output="screen"/>
+
+  <node pkg="bbinstance" name="taskview" type="taskview.py" output="screen"/>
+</launch>

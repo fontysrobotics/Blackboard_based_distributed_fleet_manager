@@ -1,0 +1,70 @@
+<?xml version="1.0" ?>
+<launch>
+
+    <group ns = "robot1">
+	<param name="tf_prefix" value="robot1_tf" />
+        <param name="robot_description" command="$(find xacro)/xacro '$(find turtlebot3_description)/urdf/turtlebot3_burger.urdf.xacro'" />
+        <node name="robot_state_publisher1" pkg="robot_state_publisher" type="robot_state_publisher">
+            
+        </node>  
+        <node name="urdf_spawner" pkg="gazebo_ros" type="spawn_model" respawn="false" output="screen" args="-urdf -x -3 -y 0 -z 0  -model robot1 -param robot_description ">
+        </node>
+
+        </group>
+
+
+
+    <group ns = "robot2">
+	<param name="tf_prefix" value="robot2_tf" />
+        <param name="robot_description" command="$(find xacro)/xacro '$(find turtlebot3_description)/urdf/turtlebot3_burger.urdf.xacro'" />
+        <node name="robot_state_publisher1" pkg="robot_state_publisher" type="robot_state_publisher">
+            
+        </node>  
+        <node name="urdf_spawner" pkg="gazebo_ros" type="spawn_model" respawn="false" output="screen" args="-urdf -x -1 -y 0 -z 0  -model robot2 -param robot_description ">
+        </node>
+
+        </group>
+
+
+
+
+    <group ns = "robot3">
+	<param name="tf_prefix" value="robot3_tf" />
+        <param name="robot_description" command="$(find xacro)/xacro '$(find turtlebot3_description)/urdf/turtlebot3_burger.urdf.xacro'" />
+        <node name="robot_state_publisher1" pkg="robot_state_publisher" type="robot_state_publisher">
+            
+        </node>  
+        <node name="urdf_spawner" pkg="gazebo_ros" type="spawn_model" respawn="false" output="screen" args="-urdf -x 1 -y 0 -z 0  -model robot3 -param robot_description ">
+        </node>
+
+        </group>
+
+
+
+
+    <group ns = "robot4">
+	<param name="tf_prefix" value="robot4_tf" />
+        <param name="robot_description" command="$(find xacro)/xacro '$(find turtlebot3_description)/urdf/turtlebot3_burger.urdf.xacro'" />
+        <node name="robot_state_publisher1" pkg="robot_state_publisher" type="robot_state_publisher">
+            
+        </node>  
+        <node name="urdf_spawner" pkg="gazebo_ros" type="spawn_model" respawn="false" output="screen" args="-urdf -x 3 -y 0 -z 0  -model robot4 -param robot_description ">
+        </node>
+
+        </group>
+
+
+      <include file="$(find robot1)/launch/amcl1.launch" />
+        <include file="$(find robot1)/launch/move_base1.launch" />
+<include file="$(find robot1)/launch/amcl2.launch" />
+        <include file="$(find robot1)/launch/move_base2.launch" />
+<include file="$(find robot1)/launch/amcl3.launch" />
+        <include file="$(find robot1)/launch/move_base3.launch" />
+
+
+<include file="$(find robot1)/launch/amcl4.launch" />
+        <include file="$(find robot1)/launch/move_base4.launch" />
+
+
+
+</launch>

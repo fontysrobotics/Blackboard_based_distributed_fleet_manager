@@ -1,0 +1,35 @@
+<?xml version="1.0"?>
+<package format="2">
+  <name>bbinstance</name>
+  <version>0.0.0</version>
+  <description>Instanciating the blackboard package and gui nodes included in this package</description>
+
+
+  <maintainer email="h.ayoub@fontys.nl">Hussam Ayoub</maintainer>
+
+
+  <license>BSD</license>
+
+
+  <buildtool_depend>catkin</buildtool_depend>
+  <buildtool_depend>python_qt_binding</buildtool_depend>
+  <buildtool_depend>QtWidgets</buildtool_depend>
+  <buildtool_depend>QtCore</buildtool_depend>
+  <buildtool_depend>QtGui</buildtool_depend>
+  <build_depend>blackboard</build_depend>
+  <build_depend>rospy</build_depend>
+  <build_export_depend>blackboard</build_export_depend>
+  <build_export_depend>rospy</build_export_depend>
+  <exec_depend>blackboard</exec_depend>
+  <exec_depend>rospy</exec_depend>
+  <exec_depend>QtWidgets</exec_depend>
+  <exec_depend>python_qt_binding</exec_depend>
+  <exec_depend>QtCore</exec_depend>
+  <exec_depend>QtGui</exec_depend>
+
+
+  <export>
+
+
+  </export>
+</package>

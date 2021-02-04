@@ -1,0 +1,29 @@
+<?xml version="1.0" ?>
+<launch>
+
+<include file="$(find gazebo_ros)/launch/empty_world.launch">
+    <arg name="world_name" value="$(find simenv)/worlds/environment.world" /> <!--environment-->
+    <arg name="paused" value="false" />
+    <arg name="use_sim_time" value="true" />
+    <arg name="gui" value="true" />
+    <arg name="headless" value="false" />
+    <arg name="debug" value="false" />
+  </include>  
+ 
+
+
+    
+
+  <node name="map_server" pkg="map_server" type="map_server" args="$(find simenv)/maps/env.yaml"> 
+    <param name="frame_id" value="map" />
+  </node>
+<node pkg="tf" type="static_transform_publisher" name="link1_broadcaster1" args="-3 0 0 0 0 0 1 map robot1/base_footprint 100" />
+<node pkg="tf" type="static_transform_publisher" name="link1_broadcaster2" args="-1 0 0 0 0 0 1 map robot1/base_footprint 100" />
+<node pkg="tf" type="static_transform_publisher" name="link1_broadcaster3" args="1 0 0 0 0 0 1 map robot1/base_footprint 100" />
+<node pkg="tf" type="static_transform_publisher" name="link1_broadcaster4" args="3 0 0 0 0 0 1 map robot1/base_footprint 100" />
+
+
+  <node type="rviz" name="rviz" pkg="rviz" args="-d $(find simenv)/rviz/rviz_trobots.rviz" />
+
+<include file="$(find robot1)/launch/robot.launch" />
+</launch>

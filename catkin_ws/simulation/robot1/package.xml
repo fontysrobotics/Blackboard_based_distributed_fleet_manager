@@ -1,0 +1,22 @@
+<?xml version="1.0"?>
+<package format="2">
+  <name>robot1</name>
+  <version>0.0.0</version>
+  <description>a simple agv description package for simulation purposes</description>
+
+  <maintainer email="h.ayoub@fontys.nl">Hussam Ayoub</maintainer>
+  <license>BSD</license>
+
+
+  <!-- <author email="h.ayoub@fontys.nl">Hussam Ayoub</author> -->
+
+  <buildtool_depend>catkin</buildtool_depend>
+  <build_depend>rospy</build_depend>
+  <build_export_depend>rospy</build_export_depend>
+  <exec_depend>rospy</exec_depend>
+
+  <export>
+
+
+  </export>
+</package>
